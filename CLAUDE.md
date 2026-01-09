@@ -1,4 +1,114 @@
-# Claude Code Rules
+# Claude Code Rules - Todo App Project
+
+## Project-Specific Context
+
+**Project**: In-Memory Command-Line Todo Application
+**Phase**: Phase I - Core Features Implementation
+**Development Approach**: Spec-Driven Development (SDD)
+**Language**: Python 3.13+
+**Package Manager**: UV
+
+### Current Implementation Status
+
+**Completed Features:**
+- ✅ Project constitution and principles (constitution.md)
+- ✅ Feature 01: Add Task (specs/01-add-task.md)
+  - Task data model with validation (src/models.py)
+  - TodoManager with ID generation and storage (src/todo_manager.py)
+  - Console interface with add command (src/main.py)
+- ✅ Feature 02: Delete Task (specs/02-delete-task.md)
+  - TodoManager.delete_task() method
+  - ID parsing and validation utilities
+  - Delete command handler
+- ✅ Feature 03: Update Task (specs/03-update-task.md)
+  - TodoManager.update_task() method
+  - Selective field updates with validation
+  - Update command handler
+- ✅ Feature 04: View Tasks (specs/04-view-tasks.md)
+  - Display utilities for tasks and task lists
+  - Summary statistics (total, complete, incomplete)
+  - View command handler
+- ✅ Feature 05: Mark Complete/Incomplete (specs/05-mark-complete.md)
+  - TodoManager.mark_complete() and mark_incomplete() methods
+  - Idempotent status changes
+  - Complete and incomplete command handlers
+
+**Phase I Status: COMPLETE ✅**
+
+All 5 core features have been implemented, tested, and documented.
+
+### Project Structure
+
+```
+todo_app/
+├── constitution.md          # Project principles (READ THIS FIRST)
+├── specs/                   # Feature specifications
+│   └── 01-add-task.md      # Completed: Add Task spec
+├── src/                     # Python source code
+│   ├── __init__.py
+│   ├── models.py           # Task data model and validation
+│   ├── todo_manager.py     # Business logic and state management
+│   └── main.py             # Console interface
+├── pyproject.toml          # UV configuration
+├── README.md               # User documentation
+└── CLAUDE.md               # This file
+```
+
+### Development Workflow for New Features
+
+When implementing a new feature (e.g., Delete Task):
+
+1. **Read the Constitution**: Review `constitution.md` for project principles
+2. **Create Specification**: Write `specs/0X-feature-name.md` following the template in `specs/01-add-task.md`
+3. **Specification Must Include**:
+   - Purpose and user stories
+   - Acceptance criteria (testable)
+   - Input/output examples
+   - Edge cases and error handling
+   - Data requirements
+   - Dependencies on existing features
+4. **Implement in Order**:
+   - Update `src/models.py` if new validation needed
+   - Update `src/todo_manager.py` with new business logic
+   - Update `src/main.py` with new command handler
+5. **Test Manually**: Run the application and verify all acceptance criteria
+6. **Update Documentation**: Update README.md if user-facing changes
+
+### Key Constraints (NON-NEGOTIABLE)
+
+- **No Persistence**: All data stored in memory only (no files, no databases)
+- **No External Dependencies**: Python standard library only (except dev tools)
+- **Single-Threaded**: No async, no threading, no multiprocessing
+- **Spec-First**: No code without a specification
+- **Validation Required**: All user inputs must be validated with clear error messages
+
+### Code Quality Standards
+
+- **Style**: PEP 8 compliance, Black formatting (line length: 88)
+- **Type Hints**: Required for all function signatures
+- **Docstrings**: Required for all public functions and classes
+- **Error Handling**: Use custom ValidationError, never bare except
+- **Module Boundaries**: Respect separation of concerns (models/manager/UI)
+
+### Testing Approach
+
+Since this is Phase I with no automated tests:
+- Manual testing required for each feature
+- Test all acceptance criteria from the specification
+- Test all edge cases documented in the spec
+- Verify error messages are clear and helpful
+
+### Important Files to Reference
+
+- `constitution.md`: Project principles and development rules
+- `specs/01-add-task.md`: Example of a complete specification
+- `src/models.py`: Task data model and validation patterns
+- `src/todo_manager.py`: State management patterns
+- `src/main.py`: UI patterns and command routing
+
+---
+
+# General SDD Guidelines
 
 This file is generated during init for the selected agent.
 
