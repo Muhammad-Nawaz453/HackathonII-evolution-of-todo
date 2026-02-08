@@ -1,0 +1,35 @@
+# Backend Requirements - Phase 3
+
+# Google Gemini and AI Agent Dependencies
+google-generativeai>=0.3.0        # Google Gemini API client (FREE - 1500 requests/day)
+mcp>=0.1.0                        # Official Model Context Protocol SDK
+
+# Streaming and Real-time
+sse-starlette>=1.8.2              # Server-Sent Events for streaming responses
+
+# Date and Time Parsing
+python-dateutil>=2.8.2            # Natural language date parsing
+
+# Validation
+jsonschema>=4.20.0                # JSON Schema validation for tool parameters
+
+# Existing Phase 2 Dependencies (keep these)
+fastapi>=0.109.0
+uvicorn[standard]>=0.27.0
+sqlmodel>=0.0.14
+psycopg2-binary>=2.9.9            # PostgreSQL driver
+pydantic>=2.5.0
+python-dotenv>=1.0.0
+alembic>=1.13.0                   # Database migrations
+
+# Development and Testing
+pytest>=7.4.3
+pytest-asyncio>=0.23.2
+pytest-cov>=4.1.0
+httpx>=0.26.0                     # For testing async endpoints
+black>=23.12.0                    # Code formatting
+ruff>=0.1.9                       # Linting
+
+# Optional but Recommended
+redis>=5.0.1                      # For conversation caching (optional)
+sentry-sdk[fastapi]>=1.39.0       # Error tracking (optional)

@@ -1,0 +1,106 @@
+name: Build and Push Images
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'phase-3/**'
+      - 'phase-5/backend-event-service/**'
+      - '.github/workflows/build-push.yml'
+  workflow_dispatch:
+
+env:
+  REGISTRY: registry.digitalocean.com/todo-app-registry
+
+jobs:
+  build-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build backend image
+        run: |
+          cd phase-3/backend
+          docker build -t ${{ env.REGISTRY }}/todo-backend:${{ github.sha }} .
+          docker tag ${{ env.REGISTRY }}/todo-backend:${{ github.sha }} ${{ env.REGISTRY }}/todo-backend:latest
+
+      - name: Push backend image
+        run: |
+          docker push ${{ env.REGISTRY }}/todo-backend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/todo-backend:latest
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build frontend image
+        run: |
+          cd phase-3/frontend
+          docker build -t ${{ env.REGISTRY }}/todo-frontend:${{ github.sha }} .
+          docker tag ${{ env.REGISTRY }}/todo-frontend:${{ github.sha }} ${{ env.REGISTRY }}/todo-frontend:latest
+
+      - name: Push frontend image
+        run: |
+          docker push ${{ env.REGISTRY }}/todo-frontend:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/todo-frontend:latest
+
+  build-event-service:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1200
+
+      - name: Build event service image
+        run: |
+          cd phase-5/backend-event-service
+          docker build -t ${{ env.REGISTRY }}/event-service:${{ github.sha }} .
+          docker tag ${{ env.REGISTRY }}/event-service:${{ github.sha }} ${{ env.REGISTRY }}/event-service:latest
+
+      - name: Push event service image
+        run: |
+          docker push ${{ env.REGISTRY }}/event-service:${{ github.sha }}
+          docker push ${{ env.REGISTRY }}/event-service:latest
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [build-backend, build-frontend, build-event-service]
+    if: always()
+    steps:
+      - name: Check build status
+        run: |
+          if [ "${{ needs.build-backend.result }}" == "success" ] && \
+             [ "${{ needs.build-frontend.result }}" == "success" ] && \
+             [ "${{ needs.build-event-service.result }}" == "success" ]; then
+            echo "✅ All images built and pushed successfully"
+          else
+            echo "❌ Some builds failed"
+            exit 1
+          fi

@@ -1,0 +1,13 @@
+{{- if .Values.backend.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "todo-app.backend.fullname" . }}-config
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "todo-app.backend.labels" . | nindent 4 }}
+data:
+  openai-model: {{ .Values.backend.config.openaiModel | quote }}
+  cors-origins: {{ .Values.backend.config.corsOrigins | quote }}
+  log-level: {{ .Values.backend.config.logLevel | quote }}
+{{- end }}

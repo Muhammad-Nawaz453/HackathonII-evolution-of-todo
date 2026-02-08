@@ -1,0 +1,109 @@
+name: Deploy to DOKS
+
+on:
+  workflow_run:
+    workflows: ["Build and Push Images"]
+    types:
+      - completed
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+
+env:
+  CLUSTER_NAME: todo-app-prod
+  NAMESPACE: todo-app-prod
+  REGISTRY: registry.digitalocean.com/todo-app-registry
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Save kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ env.CLUSTER_NAME }}
+
+      - name: Verify cluster access
+        run: kubectl cluster-info
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: '3.13.0'
+
+      - name: Deploy with Helm
+        run: |
+          cd phase-5
+          helm upgrade --install todo-app ./helm/todo-app-prod \
+            --namespace ${{ env.NAMESPACE }} \
+            --values ./helm/todo-app-prod/values-production.yaml \
+            --set backend.image=${{ env.REGISTRY }}/todo-backend:${{ github.sha }} \
+            --set frontend.image=${{ env.REGISTRY }}/todo-frontend:${{ github.sha }} \
+            --set eventService.image=${{ env.REGISTRY }}/event-service:${{ github.sha }} \
+            --wait \
+            --timeout 10m
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/todo-backend -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/todo-frontend -n ${{ env.NAMESPACE }} --timeout=5m
+          kubectl rollout status deployment/event-service -n ${{ env.NAMESPACE }} --timeout=5m
+
+      - name: Run smoke tests
+        run: |
+          # Get ingress IP
+          INGRESS_IP=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+          if [ -z "$INGRESS_IP" ]; then
+            echo "❌ Ingress IP not found"
+            exit 1
+          fi
+
+          echo "Testing application at http://$INGRESS_IP"
+
+          # Test backend health
+          curl -f http://$INGRESS_IP/api/health || exit 1
+          echo "✅ Backend health check passed"
+
+          # Test frontend
+          curl -f http://$INGRESS_IP/ || exit 1
+          echo "✅ Frontend health check passed"
+
+      - name: Get deployment info
+        run: |
+          echo "Deployment successful!"
+          echo ""
+          echo "Pods:"
+          kubectl get pods -n ${{ env.NAMESPACE }}
+          echo ""
+          echo "Services:"
+          kubectl get svc -n ${{ env.NAMESPACE }}
+          echo ""
+          echo "Ingress:"
+          kubectl get ingress -n ${{ env.NAMESPACE }}
+          echo ""
+          INGRESS_IP=$(kubectl get svc ingress-nginx-controller -n ingress-nginx -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+          echo "Application URL: http://$INGRESS_IP"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment failed!"
+          kubectl get pods -n ${{ env.NAMESPACE }}
+          kubectl describe pods -n ${{ env.NAMESPACE }}

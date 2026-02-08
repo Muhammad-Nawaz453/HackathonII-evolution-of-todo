@@ -1,0 +1,104 @@
+{
+  "type": "record",
+  "name": "TaskUpdated",
+  "namespace": "com.todoapp.events",
+  "doc": "Event published when a task is updated",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for this event (UUID)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "default": "task.updated",
+      "doc": "Type of event"
+    },
+    {
+      "name": "event_version",
+      "type": "string",
+      "default": "v1",
+      "doc": "Schema version"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "ISO 8601 timestamp when event was created"
+    },
+    {
+      "name": "correlation_id",
+      "type": "string",
+      "doc": "Correlation ID for distributed tracing"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "default": "todo-backend",
+      "doc": "Service that published this event"
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "TaskUpdatedPayload",
+        "fields": [
+          {
+            "name": "task_id",
+            "type": "int",
+            "doc": "Unique task identifier"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "doc": "Updated task title"
+          },
+          {
+            "name": "description",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Updated task description"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "doc": "Updated task status (complete or incomplete)"
+          },
+          {
+            "name": "updated_at",
+            "type": "string",
+            "doc": "ISO 8601 timestamp when task was updated"
+          },
+          {
+            "name": "changes",
+            "type": {
+              "type": "record",
+              "name": "TaskChanges",
+              "fields": [
+                {
+                  "name": "title",
+                  "type": "boolean",
+                  "default": false,
+                  "doc": "Whether title was changed"
+                },
+                {
+                  "name": "description",
+                  "type": "boolean",
+                  "default": false,
+                  "doc": "Whether description was changed"
+                },
+                {
+                  "name": "status",
+                  "type": "boolean",
+                  "default": false,
+                  "doc": "Whether status was changed"
+                }
+              ]
+            },
+            "doc": "Fields that were changed in this update"
+          }
+        ]
+      }
+    }
+  ]
+}

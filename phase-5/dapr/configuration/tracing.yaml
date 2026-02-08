@@ -1,0 +1,16 @@
+apiVersion: dapr.io/v1alpha1
+kind: Configuration
+metadata:
+  name: tracing-config
+  namespace: todo-app-prod
+spec:
+  tracing:
+    samplingRate: "1"  # 100% sampling for demo (reduce to 0.1 in production)
+    zipkin:
+      endpointAddress: "http://jaeger-collector.monitoring.svc.cluster.local:9411/api/v2/spans"
+  metric:
+    enabled: true
+  mtls:
+    enabled: false  # Enable in production for security
+    workloadCertTTL: "24h"
+    allowedClockSkew: "15m"

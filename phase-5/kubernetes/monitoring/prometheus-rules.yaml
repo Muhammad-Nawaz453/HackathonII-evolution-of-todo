@@ -1,0 +1,92 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: todo-app-alerts
+  namespace: monitoring
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  - name: todo-app
+    interval: 30s
+    rules:
+    - alert: HighErrorRate
+      expr: |
+        rate(http_requests_total{job="todo-backend",status=~"5.."}[5m]) > 0.05
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High error rate in backend API"
+        description: "Backend API error rate is {{ $value }} (>5%)"
+
+    - alert: HighAPILatency
+      expr: |
+        histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job="todo-backend"}[5m])) > 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High API latency"
+        description: "API p95 latency is {{ $value }}s (>1s)"
+
+    - alert: PodCrashLooping
+      expr: |
+        rate(kube_pod_container_status_restarts_total{namespace="todo-app-prod"}[15m]) > 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Pod is crash looping"
+        description: "Pod {{ $labels.pod }} is restarting frequently"
+
+    - alert: HighKafkaConsumerLag
+      expr: |
+        kafka_consumergroup_lag{group="event-service"} > 1000
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "High Kafka consumer lag"
+        description: "Consumer lag is {{ $value }} messages (>1000)"
+
+    - alert: NodeMemoryPressure
+      expr: |
+        kube_node_status_condition{condition="MemoryPressure",status="true"} == 1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Node under memory pressure"
+        description: "Node {{ $labels.node }} is under memory pressure"
+
+    - alert: PodMemoryUsageHigh
+      expr: |
+        container_memory_usage_bytes{namespace="todo-app-prod"} / container_spec_memory_limit_bytes{namespace="todo-app-prod"} > 0.9
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Pod memory usage is high"
+        description: "Pod {{ $labels.pod }} memory usage is {{ $value }}% (>90%)"
+
+    - alert: KafkaBrokerDown
+      expr: |
+        kafka_server_replicamanager_leadercount == 0
+      for: 5m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Kafka broker is down"
+        description: "Kafka broker {{ $labels.instance }} is down"
+
+    - alert: DaprSidecarDown
+      expr: |
+        up{job="dapr-sidecar"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Dapr sidecar is down"
+        description: "Dapr sidecar for {{ $labels.pod }} is down"

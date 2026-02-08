@@ -1,0 +1,60 @@
+{
+  "type": "record",
+  "name": "TaskDeleted",
+  "namespace": "com.todoapp.events",
+  "doc": "Event published when a task is deleted",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for this event (UUID)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "default": "task.deleted",
+      "doc": "Type of event"
+    },
+    {
+      "name": "event_version",
+      "type": "string",
+      "default": "v1",
+      "doc": "Schema version"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "ISO 8601 timestamp when event was created"
+    },
+    {
+      "name": "correlation_id",
+      "type": "string",
+      "doc": "Correlation ID for distributed tracing"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "default": "todo-backend",
+      "doc": "Service that published this event"
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "TaskDeletedPayload",
+        "fields": [
+          {
+            "name": "task_id",
+            "type": "int",
+            "doc": "Unique task identifier"
+          },
+          {
+            "name": "deleted_at",
+            "type": "string",
+            "doc": "ISO 8601 timestamp when task was deleted"
+          }
+        ]
+      }
+    }
+  ]
+}

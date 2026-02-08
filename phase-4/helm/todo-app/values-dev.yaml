@@ -1,0 +1,44 @@
+# Development environment overrides
+
+global:
+  environment: development
+
+backend:
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  config:
+    logLevel: "DEBUG"
+
+frontend:
+  replicaCount: 1
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+database:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  persistence:
+    size: 2Gi
+
+ingress:
+  enabled: false

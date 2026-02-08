@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: todo-frontend-config
+  namespace: todo-app-dev
+  labels:
+    app: todo-app
+    component: frontend
+data:
+  api-url: "http://todo-backend:8000"
+  chat-endpoint: "http://todo-backend:8000/api/chat"

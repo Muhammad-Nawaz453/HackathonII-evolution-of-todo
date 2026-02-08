@@ -1,0 +1,41 @@
+# Patterns to ignore when packaging Helm chart
+
+# Version control
+.git/
+.gitignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (keep only essential docs)
+docs/
+*.md
+!README.md
+!NOTES.txt
+
+# Test files
+test/
+tests/
+*_test.yaml
+*_test.yml
+
+# Backup files
+*.bak
+*.tmp
+*~
+
+# Values files for local testing
+values-local.yaml
+values-test.yaml

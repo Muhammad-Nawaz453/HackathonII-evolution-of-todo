@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: todo-app-dev
+  labels:
+    name: todo-app-dev
+    environment: development
+    app: todo-app
+---
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: todo-app-quota
+  namespace: todo-app-dev
+spec:
+  hard:
+    requests.cpu: "4"
+    requests.memory: 8Gi
+    limits.cpu: "8"
+    limits.memory: 16Gi
+    persistentvolumeclaims: "5"
+    services.nodeports: "2"

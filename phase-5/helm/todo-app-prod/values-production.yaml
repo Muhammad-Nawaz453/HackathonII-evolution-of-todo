@@ -1,0 +1,119 @@
+# Production values for Todo App
+namespace: todo-app-prod
+
+# Backend configuration
+backend:
+  image: registry.digitalocean.com/todo-app-registry/todo-backend:latest
+  replicas: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPU: 70
+    targetMemory: 80
+  env:
+    - name: DATABASE_URL
+      valueFrom:
+        secretKeyRef:
+          name: database-secret
+          key: url
+    - name: OPENAI_API_KEY
+      valueFrom:
+        secretKeyRef:
+          name: openai-secret
+          key: api-key
+    - name: DAPR_HTTP_PORT
+      value: "3500"
+    - name: DAPR_GRPC_PORT
+      value: "50001"
+    - name: LOG_LEVEL
+      value: "INFO"
+
+# Frontend configuration
+frontend:
+  image: registry.digitalocean.com/todo-app-registry/todo-frontend:latest
+  replicas: 3
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPU: 70
+
+# Event Service configuration
+eventService:
+  image: registry.digitalocean.com/todo-app-registry/event-service:latest
+  replicas: 2
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 5
+    targetCPU: 70
+
+# Dapr configuration
+dapr:
+  enabled: true
+  appId:
+    backend: "todo-backend"
+    eventService: "event-service"
+  appPort:
+    backend: 8000
+    eventService: 8001
+  config: "tracing-config"
+  logLevel: "info"
+  sidecar:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 200m
+        memory: 256Mi
+
+# Service configuration
+service:
+  type: ClusterIP
+  backend:
+    port: 8000
+  frontend:
+    port: 80
+  eventService:
+    port: 8001
+
+# Ingress configuration
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "false"
+  hosts:
+    - paths:
+        - path: /api
+          pathType: Prefix
+          service: todo-backend
+          port: 8000
+        - path: /
+          pathType: Prefix
+          service: todo-frontend
+          port: 80

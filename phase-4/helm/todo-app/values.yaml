@@ -1,0 +1,129 @@
+# Default values for todo-app
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+# Global settings
+global:
+  namespace: todo-app-dev
+  environment: development
+
+# Backend configuration
+backend:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: todo-backend
+    tag: latest
+    pullPolicy: Never  # Use local images in Minikube
+
+  service:
+    type: ClusterIP
+    port: 8000
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  config:
+    openaiModel: "gpt-4-turbo-preview"
+    corsOrigins: "http://localhost:3000,http://todo-frontend:3000"
+    logLevel: "INFO"
+
+  secrets:
+    databaseUrl: ""
+    openaiApiKey: ""
+
+  probes:
+    liveness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 30
+      periodSeconds: 10
+    readiness:
+      enabled: true
+      path: /health
+      initialDelaySeconds: 10
+      periodSeconds: 5
+
+# Frontend configuration
+frontend:
+  enabled: true
+  replicaCount: 2
+
+  image:
+    repository: todo-frontend
+    tag: latest
+    pullPolicy: Never
+
+  service:
+    type: NodePort
+    port: 3000
+    nodePort: 30000
+
+  resources:
+    requests:
+      cpu: 200m
+      memory: 256Mi
+    limits:
+      cpu: 400m
+      memory: 512Mi
+
+  config:
+    apiUrl: "http://todo-backend:8000"
+    chatEndpoint: "http://todo-backend:8000/api/chat"
+
+# Database configuration
+database:
+  enabled: true
+
+  image:
+    repository: postgres
+    tag: "16-alpine"
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    port: 5432
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+  persistence:
+    enabled: true
+    storageClass: "standard"
+    accessMode: ReadWriteOnce
+    size: 5Gi
+
+  config:
+    databaseName: "todo_db"
+
+  secrets:
+    username: "todo_user"
+    password: "todo_password"
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: nginx
+  hosts:
+    - host: todo.local
+      paths:
+        - path: /
+          pathType: Prefix
+          service: frontend
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000

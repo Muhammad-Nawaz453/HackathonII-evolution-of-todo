@@ -1,0 +1,23 @@
+# Example Terraform variables
+# Copy this file to terraform.tfvars and customize
+
+# DigitalOcean API token (required)
+# Get from: https://cloud.digitalocean.com/account/api/tokens
+do_token = "dop_v1_..."
+
+# Cluster configuration
+cluster_name       = "todo-app-prod"
+region             = "nyc1"  # Options: nyc1, nyc3, sfo3, lon1, fra1, sgp1, tor1, blr1
+kubernetes_version = "1.28.2-do.0"  # Check latest: doctl kubernetes options versions
+
+# Node pool configuration
+node_size  = "s-2vcpu-4gb"  # $24/month per node
+node_count = 3              # Initial node count
+min_nodes  = 2              # Minimum for autoscaling
+max_nodes  = 5              # Maximum for autoscaling
+
+# Container registry
+registry_name = "todo-app-registry"  # Must be globally unique
+
+# Tags
+tags = ["todo-app", "production", "phase-5", "hackathon"]

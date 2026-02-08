@@ -1,0 +1,13 @@
+apiVersion: v2
+name: todo-app-prod
+description: Production deployment of Todo App with Kafka, Dapr, and monitoring
+type: application
+version: 1.0.0
+appVersion: "1.0.0"
+keywords:
+  - todo
+  - kafka
+  - dapr
+  - production
+maintainers:
+  - name: Todo App Team

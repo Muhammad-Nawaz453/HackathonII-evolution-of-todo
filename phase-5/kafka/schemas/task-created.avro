@@ -1,0 +1,83 @@
+{
+  "type": "record",
+  "name": "TaskCreated",
+  "namespace": "com.todoapp.events",
+  "doc": "Event published when a new task is created",
+  "fields": [
+    {
+      "name": "event_id",
+      "type": "string",
+      "doc": "Unique identifier for this event (UUID)"
+    },
+    {
+      "name": "event_type",
+      "type": "string",
+      "default": "task.created",
+      "doc": "Type of event"
+    },
+    {
+      "name": "event_version",
+      "type": "string",
+      "default": "v1",
+      "doc": "Schema version"
+    },
+    {
+      "name": "timestamp",
+      "type": "string",
+      "doc": "ISO 8601 timestamp when event was created"
+    },
+    {
+      "name": "correlation_id",
+      "type": "string",
+      "doc": "Correlation ID for distributed tracing"
+    },
+    {
+      "name": "source",
+      "type": "string",
+      "default": "todo-backend",
+      "doc": "Service that published this event"
+    },
+    {
+      "name": "payload",
+      "type": {
+        "type": "record",
+        "name": "TaskCreatedPayload",
+        "fields": [
+          {
+            "name": "task_id",
+            "type": "int",
+            "doc": "Unique task identifier"
+          },
+          {
+            "name": "title",
+            "type": "string",
+            "doc": "Task title"
+          },
+          {
+            "name": "description",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Optional task description"
+          },
+          {
+            "name": "status",
+            "type": "string",
+            "default": "incomplete",
+            "doc": "Task status (complete or incomplete)"
+          },
+          {
+            "name": "created_at",
+            "type": "string",
+            "doc": "ISO 8601 timestamp when task was created"
+          },
+          {
+            "name": "user_id",
+            "type": ["null", "string"],
+            "default": null,
+            "doc": "Optional user ID who created the task"
+          }
+        ]
+      }
+    }
+  ]
+}

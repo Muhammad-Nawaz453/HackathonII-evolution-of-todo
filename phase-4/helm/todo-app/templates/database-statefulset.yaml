@@ -1,0 +1,87 @@
+{{- if .Values.database.enabled }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "todo-app.database.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+    {{- include "todo-app.database.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ include "todo-app.database.fullname" . }}
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "todo-app.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "todo-app.database.labels" . | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999
+        fsGroup: 999
+
+      containers:
+      - name: postgres
+        image: "{{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}"
+        imagePullPolicy: {{ .Values.database.image.pullPolicy }}
+
+        ports:
+        - name: postgres
+          containerPort: {{ .Values.database.service.port }}
+          protocol: TCP
+
+        env:
+        - name: POSTGRES_DB
+          value: {{ .Values.database.config.databaseName | quote }}
+        - name: POSTGRES_USER
+          value: {{ .Values.database.secrets.username | quote }}
+        - name: POSTGRES_PASSWORD
+          value: {{ .Values.database.secrets.password | quote }}
+        - name: PGDATA
+          value: /var/lib/postgresql/data/pgdata
+
+        resources:
+          {{- toYaml .Values.database.resources | nindent 10 }}
+
+        {{- if .Values.database.probes.liveness.enabled }}
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+          initialDelaySeconds: {{ .Values.database.probes.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.database.probes.liveness.periodSeconds }}
+        {{- end }}
+
+        {{- if .Values.database.probes.readiness.enabled }}
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - pg_isready -U $POSTGRES_USER -d $POSTGRES_DB
+          initialDelaySeconds: {{ .Values.database.probes.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.database.probes.readiness.periodSeconds }}
+        {{- end }}
+
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+
+  {{- if .Values.database.persistence.enabled }}
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-storage
+    spec:
+      accessModes:
+        - {{ .Values.database.persistence.accessMode }}
+      storageClassName: {{ .Values.database.persistence.storageClass }}
+      resources:
+        requests:
+          storage: {{ .Values.database.persistence.size }}
+  {{- end }}
+{{- end }}
